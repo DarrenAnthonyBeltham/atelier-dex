@@ -38,7 +38,7 @@ const PlayerZone = ({ player, pokemonDataMap, isOpponent, onCardClick }: { playe
           {player.bench.map((card, i) => card ? <CardDisplay key={card.instanceId} pokemon={pokemonDataMap[card.pokemonId]} /> : <EmptySlot key={i} />)}
         </div>
         <div className="flex justify-center">
-          {player.activePokemon ? <CardDisplay pokemon={pokemonDataMap[player.activePokemon.pokemonId]} /> : <EmptySlot />}
+          {player.activePokemon ? <CardDisplay key={player.activePokemon.instanceId} pokemon={pokemonDataMap[player.activePokemon.pokemonId]} /> : <EmptySlot />}
         </div>
       </div>
       <div className="flex flex-col items-center gap-2">
