@@ -3,7 +3,7 @@
 import { useEffect, useState, FC } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Pusher from 'pusher-js';
-import { GameState, PlayerState, Card } from '@/types/game';
+import { GameState, PlayerState } from '@/types/game';
 import { Pokemon } from '@/types/pokemon';
 import Image from 'next/image';
 

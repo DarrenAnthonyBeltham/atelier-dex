@@ -1,4 +1,4 @@
-import { GameState, PlayerState, Card } from "@/types/game";
+import { GameState, PlayerState } from "@/types/game";
 import { Pokemon } from "@/types/pokemon";
 import { GameCard } from "./GameCard";
 
@@ -11,11 +11,11 @@ const PlayerArea = ({ player, pokemonDataMap, isOpponent }: { player: PlayerStat
     <div className={`flex ${areaClasses} gap-4`}>
       <div className="flex justify-center items-center gap-2">
         {player.bench.map((card, index) => (
-          card ? <GameCard key={card.instanceId} card={card} pokemon={pokemonDataMap[card.pokemonId]} /> : <EmptySlot key={index} />
+          card ? <GameCard key={card.instanceId} pokemon={pokemonDataMap[card.pokemonId]} /> : <EmptySlot key={index} />
         ))}
       </div>
       <div className="flex justify-center">
-        {player.activePokemon ? <GameCard card={player.activePokemon} pokemon={pokemonDataMap[player.activePokemon.pokemonId]} /> : <EmptySlot />}
+        {player.activePokemon ? <GameCard pokemon={pokemonDataMap[player.activePokemon.pokemonId]} /> : <EmptySlot />}
       </div>
     </div>
   );

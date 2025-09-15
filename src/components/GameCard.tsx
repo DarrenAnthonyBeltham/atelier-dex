@@ -1,15 +1,13 @@
-import { Card } from "@/types/game";
 import { Pokemon } from "@/types/pokemon";
 import Image from "next/image";
 
 interface GameCardProps {
-  card: Card;
   pokemon: Pokemon;
   isFaceDown?: boolean;
   onClick?: () => void;
 }
 
-export const GameCard = ({ card, pokemon, isFaceDown = false, onClick }: GameCardProps) => {
+export const GameCard = ({ pokemon, isFaceDown = false, onClick }: GameCardProps) => {
   const borderStyle = onClick ? 'cursor-pointer hover:border-yellow-400' : '';
 
   if (isFaceDown) {
