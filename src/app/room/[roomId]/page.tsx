@@ -1,4 +1,4 @@
-import RoomClient from "./roomClient";
+import RoomClient from "./RoomClient";
 
 interface RoomPageProps {
   params: {
