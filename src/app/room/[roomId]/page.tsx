@@ -7,7 +7,7 @@ import { GameState, PlayerState, Card } from '@/types/game';
 import { Pokemon } from '@/types/pokemon';
 import Image from 'next/image';
 
-const CardDisplay = ({ card, pokemon, isFaceDown = false, onClick }: { card: Card, pokemon?: Pokemon, isFaceDown?: boolean, onClick?: () => void }) => (
+const CardDisplay = ({ pokemon, isFaceDown = false, onClick }: { pokemon?: Pokemon, isFaceDown?: boolean, onClick?: () => void }) => (
   <div onClick={onClick} className={`w-24 h-32 rounded-lg border-2 border-blue-300 shadow-lg ${onClick ? 'cursor-pointer hover:border-yellow-400' : ''}`}>
     {isFaceDown || !pokemon ? (
       <div className="w-full h-full bg-blue-500 rounded-lg"></div>
@@ -25,7 +25,7 @@ const PlayerZone = ({ player, pokemonDataMap, isOpponent, onCardClick }: { playe
       {isOpponent ? (
         player.hand.map((_, i) => <div key={i} className="w-24 h-32 rounded-lg bg-blue-500 border-2 border-blue-300"></div>)
       ) : (
-        player.hand.map(card => <CardDisplay key={card.instanceId} card={card} pokemon={pokemonDataMap[card.pokemonId]} onClick={() => onCardClick(card.instanceId)} />)
+        player.hand.map(card => <CardDisplay key={card.instanceId} pokemon={pokemonDataMap[card.pokemonId]} onClick={() => onCardClick(card.instanceId)} />)
       )}
     </div>
     <div className="flex justify-between items-center">
@@ -35,10 +35,10 @@ const PlayerZone = ({ player, pokemonDataMap, isOpponent, onCardClick }: { playe
       </div>
       <div className="flex-1 flex flex-col items-center gap-4">
         <div className="flex justify-center gap-2">
-          {player.bench.map((card, i) => card ? <CardDisplay key={card.instanceId} card={card} pokemon={pokemonDataMap[card.pokemonId]} /> : <EmptySlot key={i} />)}
+          {player.bench.map((card, i) => card ? <CardDisplay key={card.instanceId} pokemon={pokemonDataMap[card.pokemonId]} /> : <EmptySlot key={i} />)}
         </div>
         <div className="flex justify-center">
-          {player.activePokemon ? <CardDisplay card={player.activePokemon} pokemon={pokemonDataMap[player.activePokemon.pokemonId]} /> : <EmptySlot />}
+          {player.activePokemon ? <CardDisplay pokemon={pokemonDataMap[player.activePokemon.pokemonId]} /> : <EmptySlot />}
         </div>
       </div>
       <div className="flex flex-col items-center gap-2">
@@ -61,7 +61,7 @@ export default function RoomPage({ params }: { params: { roomId: string } }) {
     return () => { pusher.unsubscribe(`room-${roomId}`) };
   }, [roomId]);
 
-  const sendAction = (action: string, payload: any = {}) => {
+  const sendAction = (action: string, payload: Record<string, unknown> = {}) => {
     fetch('/api/game-action', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -79,7 +79,7 @@ export default function RoomPage({ params }: { params: { roomId: string } }) {
       </main>
     );
   }
-
+  
   const me = gameState.players.find(p => p.id === myPlayerId);
   const opponent = gameState.players.find(p => p.id !== myPlayerId);
 

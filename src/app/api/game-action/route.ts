@@ -13,7 +13,17 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-const trimPokemonData = (fullPokemon: any): Pokemon => {
+interface FullPokemonFromAPI {
+    id: number;
+    name: string;
+    sprites: {
+        front_default: string;
+        other: { 'official-artwork': { front_default: string } };
+    };
+    types: any[];
+}
+
+const trimPokemonData = (fullPokemon: FullPokemonFromAPI): Pokemon => {
   return {
     id: fullPokemon.id,
     name: fullPokemon.name,
@@ -48,8 +58,8 @@ async function createNewGame(roomId: string): Promise<GameState> {
   };
 
   const shuffle = (deck: Card[]) => deck.sort(() => Math.random() - 0.5);
-  let deck1 = shuffle(createDeck());
-  let deck2 = shuffle(createDeck());
+  const deck1 = shuffle(createDeck());
+  const deck2 = shuffle(createDeck());
 
   const player1: PlayerState = {
     id: 'player1', name: 'Player 1',
