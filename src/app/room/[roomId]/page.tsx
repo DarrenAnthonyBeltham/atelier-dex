@@ -48,7 +48,13 @@ const PlayerZone = ({ player, pokemonDataMap, isOpponent, onCardClick }: { playe
   </div>
 );
 
-export default function RoomPage({ params }: { params: { roomId: string } }) {
+interface RoomPageProps {
+  params: {
+    roomId: string;
+  };
+}
+
+export default function RoomPage({ params }: RoomPageProps) {
   const { roomId } = params;
   const searchParams = useSearchParams();
   const [gameState, setGameState] = useState<GameState | null>(null);
