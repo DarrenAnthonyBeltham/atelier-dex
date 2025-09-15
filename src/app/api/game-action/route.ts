@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
 import Pusher from 'pusher';
-import { GameState, PlayerState, Card } from '@/types/game';
-import { Pokemon, PokemonType } from '@/types/pokemon';
-import { getPokemon as fetchFullPokemon } from '@/lib/pokemonAPI';
+import { GameState, PlayerState, TcgCard } from '@/types/tcg';
+import { getCardData } from '@/lib/tcgData';
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID!,
@@ -13,51 +12,16 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-interface FullPokemonFromAPI {
-    id: number;
-    name: string;
-    sprites: {
-        front_default: string;
-        other: { 'official-artwork': { front_default: string } };
-    };
-    types: PokemonType[];
-}
-
-const trimPokemonData = (fullPokemon: FullPokemonFromAPI): Pokemon => {
-  return {
-    id: fullPokemon.id,
-    name: fullPokemon.name,
-    sprites: {
-      front_default: fullPokemon.sprites.front_default,
-      other: {
-        'official-artwork': {
-          front_default: fullPokemon.sprites.other['official-artwork'].front_default,
-        },
-      },
-    },
-    types: fullPokemon.types,
-  };
-};
-
 async function createNewGame(roomId: string): Promise<GameState> {
-  const decklist = ['bulbasaur', 'charmander', 'squirtle', 'pidgey', 'rattata', 'pikachu'];
-  const deckPromises = decklist.map(name => fetchFullPokemon(name));
-  const fullPokemonData = await Promise.all(deckPromises);
-  const uniquePokemon = fullPokemonData.map(trimPokemonData);
+  const decklist = ['Bulbasaur', 'Charmander', 'Squirtle', 'Pikachu', 'Pidgey', 'Rattata'];
+  const cardPromises = decklist.map(name => getCardData(name));
+  const uniqueCards = await Promise.all(cardPromises);
 
-  const pokemonDataMap: { [id: number]: Pokemon } = {};
-  uniquePokemon.forEach(p => {
-    pokemonDataMap[p.id] = p;
-  });
-
-  const createDeck = (): Card[] => {
-    return Array(60).fill(null).map((_, i) => {
-      const pokemon = uniquePokemon[i % uniquePokemon.length];
-      return { instanceId: `${pokemon.name}-${i}`, pokemonId: pokemon.id };
-    });
+  const createDeck = (): TcgCard[] => {
+    return Array(60).fill(null).map((_, i) => uniqueCards[i % uniqueCards.length]);
   };
 
-  const shuffle = (deck: Card[]) => deck.sort(() => Math.random() - 0.5);
+  const shuffle = (deck: TcgCard[]) => deck.sort(() => Math.random() - 0.5);
   const deck1 = shuffle(createDeck());
   const deck2 = shuffle(createDeck());
 
@@ -84,7 +48,6 @@ async function createNewGame(roomId: string): Promise<GameState> {
   return {
     gameId: roomId,
     status: 'PLAYING',
-    pokemonDataMap,
     players: [player1, player2],
     activePlayerId: 'player1',
     turn: 1,
@@ -109,14 +72,14 @@ export async function POST(req: NextRequest) {
     if (activePlayer && activePlayer.id === playerId) {
       switch (action) {
         case 'PLAY_TO_BENCH':
-          const cardToPlay = activePlayer.hand.find(c => c.instanceId === payload.cardId);
+          const cardToPlay = activePlayer.hand.find(c => c.id === payload.cardId);
           const emptyBenchSlot = activePlayer.bench.findIndex(s => s === null);
           if (cardToPlay && emptyBenchSlot !== -1) {
             activePlayer.bench[emptyBenchSlot] = cardToPlay;
-            activePlayer.hand = activePlayer.hand.filter(c => c.instanceId !== payload.cardId);
+            activePlayer.hand = activePlayer.hand.filter(c => c.id !== payload.cardId);
             if (!activePlayer.activePokemon) {
-               activePlayer.activePokemon = activePlayer.bench[emptyBenchSlot];
-               activePlayer.bench[emptyBenchSlot] = null;
+              activePlayer.activePokemon = activePlayer.bench[emptyBenchSlot];
+              activePlayer.bench[emptyBenchSlot] = null;
             }
           }
           break;

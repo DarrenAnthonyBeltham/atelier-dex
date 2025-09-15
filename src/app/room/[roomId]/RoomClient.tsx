@@ -3,29 +3,28 @@
 import { useEffect, useState, FC } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Pusher from 'pusher-js';
-import { GameState, PlayerState } from '@/types/game';
-import { Pokemon } from '@/types/pokemon';
+import { GameState, PlayerState, TcgCard } from '@/types/tcg';
 import Image from 'next/image';
 
-const CardDisplay = ({ pokemon, isFaceDown = false, onClick }: { pokemon?: Pokemon, isFaceDown?: boolean, onClick?: () => void }) => (
-  <div onClick={onClick} className={`w-24 h-32 rounded-lg border-2 border-blue-300 shadow-lg ${onClick ? 'cursor-pointer hover:border-yellow-400' : ''}`}>
-    {isFaceDown || !pokemon ? (
-      <div className="w-full h-full bg-blue-500 rounded-lg"></div>
+const CardDisplay = ({ card, isFaceDown = false, onClick }: { card: TcgCard, isFaceDown?: boolean, onClick?: () => void }) => (
+  <div onClick={onClick} className={`w-24 h-32 rounded-lg shadow-lg relative ${onClick ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`}>
+    {isFaceDown ? (
+      <div className="w-full h-full bg-blue-500 rounded-lg border-2 border-blue-300"></div>
     ) : (
-      <Image src={pokemon.sprites.front_default} alt={pokemon.name} width={96} height={96} className="w-full h-full object-contain bg-gray-100 rounded-md" />
+      <Image src={card.images.small} alt={card.name} layout="fill" objectFit="contain" className="rounded-lg" />
     )}
   </div>
 );
 
 const EmptySlot = () => <div className="w-24 h-32 rounded-lg border-2 border-dashed border-gray-400 bg-black/20"></div>;
 
-const PlayerZone = ({ player, pokemonDataMap, isOpponent, onCardClick }: { player: PlayerState, pokemonDataMap: { [id: number]: Pokemon }, isOpponent: boolean, onCardClick: (cardId: string) => void }) => (
+const PlayerZone = ({ player, isOpponent, onCardClick }: { player: PlayerState, isOpponent: boolean, onCardClick: (cardId: string) => void }) => (
   <div className={`flex flex-col gap-4 ${isOpponent ? 'flex-col-reverse' : ''}`}>
     <div className="flex justify-center items-center gap-4 min-h-[8rem]">
       {isOpponent ? (
-        player.hand.map((_, i) => <div key={i} className="w-24 h-32 rounded-lg bg-blue-500 border-2 border-blue-300"></div>)
+        player.hand.map((card, i) => <div key={i} className="w-24 h-32 rounded-lg bg-blue-500 border-2 border-blue-300"></div>)
       ) : (
-        player.hand.map(card => <CardDisplay key={card.instanceId} pokemon={pokemonDataMap[card.pokemonId]} onClick={() => onCardClick(card.instanceId)} />)
+        player.hand.map(card => <CardDisplay key={card.id} card={card} onClick={() => onCardClick(card.id)} />)
       )}
     </div>
     <div className="flex justify-between items-center">
@@ -35,10 +34,10 @@ const PlayerZone = ({ player, pokemonDataMap, isOpponent, onCardClick }: { playe
       </div>
       <div className="flex-1 flex flex-col items-center gap-4">
         <div className="flex justify-center gap-2">
-          {player.bench.map((card, i) => card ? <CardDisplay key={card.instanceId} pokemon={pokemonDataMap[card.pokemonId]} /> : <EmptySlot key={i} />)}
+          {player.bench.map((card, i) => card ? <CardDisplay key={card.id} card={card} /> : <EmptySlot key={i} />)}
         </div>
         <div className="flex justify-center">
-          {player.activePokemon ? <CardDisplay key={player.activePokemon.instanceId} pokemon={pokemonDataMap[player.activePokemon.pokemonId]} /> : <EmptySlot />}
+          {player.activePokemon ? <CardDisplay key={player.activePokemon.id} card={player.activePokemon} /> : <EmptySlot />}
         </div>
       </div>
       <div className="flex flex-col items-center gap-2">
@@ -103,13 +102,13 @@ const RoomClient: FC<RoomClientProps> = ({ roomId }) => {
         <p>{gameState.log[gameState.log.length - 1]}</p>
       </div>
       <div className="flex flex-col justify-between gap-4">
-        <PlayerZone player={opponent} pokemonDataMap={gameState.pokemonDataMap} isOpponent={true} onCardClick={() => {}} />
+        <PlayerZone player={opponent} isOpponent={true} onCardClick={() => {}} />
         {isMyTurn && (
           <div className="flex justify-center">
             <button onClick={() => sendAction('END_TURN')} className="bg-yellow-500 text-black px-6 py-2 rounded-full font-bold">End Turn</button>
           </div>
         )}
-        <PlayerZone player={me} pokemonDataMap={gameState.pokemonDataMap} isOpponent={false} onCardClick={(cardId) => sendAction('PLAY_TO_BENCH', { cardId })} />
+        <PlayerZone player={me} isOpponent={false} onCardClick={(cardId) => sendAction('PLAY_TO_BENCH', { cardId })} />
       </div>
     </main>
   );
