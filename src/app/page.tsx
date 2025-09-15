@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getCardData } from '@/lib/tcgData';
 import { overpoweredPokemon } from '@/lib/metaData';
 import { TcgCard } from '@/types/tcg';
-import { TcgCardDetailModal } from '@/components/TCGCardDetailModal';
+import { TcgCardDetailModal } from '@/components/TcgCardDetailModal';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
