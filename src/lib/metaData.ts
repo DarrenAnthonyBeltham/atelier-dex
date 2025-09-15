@@ -4,7 +4,7 @@ export const overpoweredPokemon = [
   'groudon',
   'kyogre',
   'zacian',
-  'calyrex-shadow', 
+  'calyrex-shadow',
 ];
 
 export const topDecks = [
@@ -18,6 +18,6 @@ export const topDecks = [
   },
   {
     name: "Trick Room Threats",
-    pokemon: ['bronzong', 'marowak-alola', 'hatterene', 'indeedee-f', 'stakataka', 'glastrier'],
+    pokemon: ['bronzong', 'marowak-alola', 'hatterene', 'indeedee-female', 'stakataka', 'glastrier'],
   }
 ];

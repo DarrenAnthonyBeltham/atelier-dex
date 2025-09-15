@@ -93,44 +93,51 @@ async function createNewGame(roomId: string): Promise<GameState> {
 }
 
 export async function POST(req: NextRequest) {
-  const { roomId, action, payload, playerId } = await req.json();
-  let gameState: GameState | null = await kv.get(roomId);
+  try {
+    const { roomId, action, payload, playerId } = await req.json();
+    let gameState: GameState | null = await kv.get(roomId);
 
-  if (action === 'SETUP_GAME' && !gameState) {
-    gameState = await createNewGame(roomId);
-  }
-
-  if (!gameState) {
-    return NextResponse.json({ message: 'Game not found' }, { status: 404 });
-  }
-
-  const activePlayer = gameState.players.find(p => p.id === gameState.activePlayerId);
-  if (activePlayer && activePlayer.id === playerId) {
-    switch (action) {
-      case 'PLAY_TO_BENCH':
-        const cardToPlay = activePlayer.hand.find(c => c.instanceId === payload.cardId);
-        const emptyBenchSlot = activePlayer.bench.findIndex(s => s === null);
-        if (cardToPlay && emptyBenchSlot !== -1) {
-          activePlayer.bench[emptyBenchSlot] = cardToPlay;
-          activePlayer.hand = activePlayer.hand.filter(c => c.instanceId !== payload.cardId);
-          if (!activePlayer.activePokemon) {
-             activePlayer.activePokemon = activePlayer.bench[emptyBenchSlot];
-             activePlayer.bench[emptyBenchSlot] = null;
-          }
-        }
-        break;
-
-      case 'END_TURN':
-        const nextPlayer = gameState.players.find(p => p.id !== gameState.activePlayerId);
-        if (nextPlayer) {
-          gameState.activePlayerId = nextPlayer.id;
-          gameState.turn += 1;
-        }
-        break;
+    if (action === 'SETUP_GAME' && !gameState) {
+      gameState = await createNewGame(roomId);
     }
-  }
 
-  await kv.set(roomId, gameState);
-  await pusher.trigger(`room-${roomId}`, 'game-update', gameState);
-  return NextResponse.json({ message: 'Action processed' });
+    if (!gameState) {
+      return NextResponse.json({ message: 'Game not found' }, { status: 404 });
+    }
+
+    const activePlayer = gameState.players.find(p => p.id === gameState.activePlayerId);
+    if (activePlayer && activePlayer.id === playerId) {
+      switch (action) {
+        case 'PLAY_TO_BENCH':
+          const cardToPlay = activePlayer.hand.find(c => c.instanceId === payload.cardId);
+          const emptyBenchSlot = activePlayer.bench.findIndex(s => s === null);
+          if (cardToPlay && emptyBenchSlot !== -1) {
+            activePlayer.bench[emptyBenchSlot] = cardToPlay;
+            activePlayer.hand = activePlayer.hand.filter(c => c.instanceId !== payload.cardId);
+            if (!activePlayer.activePokemon) {
+               activePlayer.activePokemon = activePlayer.bench[emptyBenchSlot];
+               activePlayer.bench[emptyBenchSlot] = null;
+            }
+          }
+          break;
+
+        case 'END_TURN':
+          const nextPlayer = gameState.players.find(p => p.id !== gameState.activePlayerId);
+          if (nextPlayer) {
+            gameState.activePlayerId = nextPlayer.id;
+            gameState.turn += 1;
+            gameState.log.push(`It is now ${nextPlayer.name}'s turn.`);
+          }
+          break;
+      }
+    }
+
+    await kv.set(roomId, gameState);
+    await pusher.trigger(`room-${roomId}`, 'game-update', gameState);
+    return NextResponse.json({ message: 'Action processed' });
+
+  } catch (error) {
+    console.error("Error in game-action API:", error);
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+  }
 }
