@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
 import Pusher from 'pusher';
 import { GameState, PlayerState, Card } from '@/types/game';
-import { Pokemon } from '@/types/pokemon';
+import { Pokemon, PokemonType } from '@/types/pokemon';
 import { getPokemon as fetchFullPokemon } from '@/lib/pokemonAPI';
 
 const pusher = new Pusher({
@@ -20,7 +20,7 @@ interface FullPokemonFromAPI {
         front_default: string;
         other: { 'official-artwork': { front_default: string } };
     };
-    types: any[];
+    types: PokemonType[];
 }
 
 const trimPokemonData = (fullPokemon: FullPokemonFromAPI): Pokemon => {
