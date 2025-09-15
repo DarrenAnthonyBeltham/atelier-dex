@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, FC } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Pusher from 'pusher-js';
 import { GameState, PlayerState, Card } from '@/types/game';
@@ -54,7 +54,7 @@ interface RoomPageProps {
   };
 }
 
-export default function RoomPage({ params }: RoomPageProps) {
+const RoomPage: FC<RoomPageProps> = ({ params }) => {
   const { roomId } = params;
   const searchParams = useSearchParams();
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -116,4 +116,6 @@ export default function RoomPage({ params }: RoomPageProps) {
       </div>
     </main>
   );
-}
+};
+
+export default RoomPage;
